@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hành Trình Của Nhân Vật AN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-cyan: #e0f2f1;
+            --path-color: #d2b48c;
+            --station-gold: #ffeb3b;
+            --river-color: #80deea;
+            --leaf-dark: #1b5e20;
+            --leaf-light: #4caf50;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg-cyan);
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .map-header {
+            position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; text-align: center; pointer-events: none;
+            background: rgba(255,255,255,0.85); padding: 5px 40px; border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #00695c;
+        }
+        .map-header h1 { font-family: 'Dancing Script', cursive; font-size: 36px; color: #004d40; margin: 0; text-transform: uppercase; }
+
+        .viewport { width: 100vw; height: 100vh; cursor: grab; position: relative; overflow: hidden; }
+
+        .map-container {
+            position: absolute; width: 6000px; height: 4000px;
+            transform-origin: 0 0;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            will-change: transform;
+        }
+
+        .map-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+
+        /* Lớp Km nằm trên cây */
+        .km-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
+        .km-label {
+            position: absolute; background: rgba(255,255,255,0.9);
+            padding: 5px 15px; border-radius: 20px; border: 2px solid #00796b;
+            font-weight: bold; font-size: 28px; color: #00796b;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); transform: translate(-50%, -50%);
+        }
+
+        .station {
+            position: absolute; width: 90px; height: 90px;
+            background: var(--station-gold); border: 5px solid #fbc02d;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 110; transform: translate(-50%, -50%);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2); transition: 0.3s;
+        }
+        .station:hover { scale: 1.2; box-shadow: 0 0 30px #fff; }
+        .st-num { font-size: 38px; font-weight: bold; color: #5d4037; }
+        .st-name-tag {
+            position: absolute; top: 100px; background: #004d40; color: white;
+            padding: 4px 15px; border-radius: 20px; font-size: 14px;
+            font-weight: bold; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none;
+            justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-body {
+            background: #fff; width: 90%; max-width: 900px; border-radius: 25px;
+            display: flex; flex-direction: column; overflow: hidden; max-height: 85vh;
+        }
+        .modal-header { padding: 20px; background: #00695c; color: white; text-align: center; }
+        .modal-content { padding: 25px; overflow-y: auto; background: #f0f7f7; }
+        
+        .char-box {
+            background: white; margin-bottom: 15px; padding: 20px;
+            border-radius: 15px; border-left: 10px solid #ccc;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .char-an { border-left-color: #0288d1; }
+        .char-co { border-left-color: #f57c00; }
+        .char-tia { border-left-color: #5d4037; }
+        .char-name { font-weight: 800; font-size: 18px; margin-bottom: 10px; color: #333; display: flex; align-items: center; gap: 8px; }
+        .char-status { margin-bottom: 8px; font-style: italic; color: #555; }
+        .char-psy { line-height: 1.6; color: #222; }
+
+        .tree { position: absolute; z-index: 20; pointer-events: none; }
+        .leaf-cluster {
+            position: absolute; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--leaf-light), var(--leaf-dark));
+            box-shadow: 4px 6px 15px rgba(0,0,0,0.2);
+        }
+
+        .close-btn { padding: 15px; border: none; background: #004d40; color: white; cursor: pointer; font-weight: bold; font-size: 16px; }
+    </style>
+</head>
+<body>
+
+    <div class="map-header">
+        <h1>Hành trình của nhân vật AN</h1>
+    </div>
+
+    <div class="viewport" id="viewport">
+        <div class="map-container" id="mapContent">
+            <svg class="map-svg" viewBox="0 0 6000 4000">
+                <path d="M 0 1200 Q 1500 2200, 3000 1200 T 6000 1500" fill="none" stroke="var(--river-color)" stroke-width="400" opacity="0.3" />
+                <path d="M 500,1200 Q 1200,2400 1800,1800 T 2800,1200 T 4200,1800 T 5200,1400 T 5600,2800" 
+                      fill="none" stroke="var(--path-color)" stroke-width="65" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+
+            <div id="forestContainer"></div>
+
+            <div class="km-layer">
+                <div class="km-label" style="left: 1100px; top: 2100px;">2 km</div>
+                <div class="km-label" style="left: 2200px; top: 1600px;">3 km</div>
+                <div class="km-label" style="left: 3500px; top: 1400px;">5 km</div>
+                <div class="km-label" style="left: 4700px; top: 1500px;">6 km</div>
+                <div class="km-label" style="left: 5500px; top: 2200px;">4 km</div>
+            </div>
+
+            <div class="station" style="left: 500px; top: 1200px;" onclick="focusStation(1, 500, 1200)">
+                <div class="st-num">1</div><div class="st-name-tag">⚓ Bến thuyền</div>
+            </div>
+            <div class="station" style="left: 1800px; top: 1800px;" onclick="focusStation(2, 1800, 1800)">
+                <div class="st-num">2</div><div class="st-name-tag">🌿 Vùng ven rừng</div>
+            </div>
+            <div class="station" style="left: 2800px; top: 1200px;" onclick="focusStation(3, 2800, 1200)">
+                <div class="st-num">3</div><div class="st-name-tag">🍱 Nơi ăn cơm sáng</div>
+            </div>
+            <div class="station" style="left: 4200px; top: 1800px;" onclick="focusStation(4, 4200, 1800)">
+                <div class="st-num">4</div><div class="st-name-tag">🐝 Gác kèo ong</div>
+            </div>
+            <div class="station" style="left: 5200px; top: 1400px;" onclick="focusStation(5, 5200, 1400)">
+                <div class="st-num">5</div><div class="st-name-tag">🌳 Rừng sâu</div>
+            </div>
+            <div class="station" style="left: 5600px; top: 2800px;" onclick="focusStation(6, 5600, 2800)">
+                <div class="st-num">6</div><div class="st-name-tag">🏁 Kết thúc</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-body">
+            <div class="modal-header"><h2 id="mTitle" style="margin:0"></h2></div>
+            <div class="modal-content" id="mContent"></div>
+            <button class="close-btn" onclick="closeModal()">QUAY LẠI BẢN ĐỒ</button>
+        </div>
+    </div>
+
+    <script>
+        const tripData = {
+            1: {
+                t: "Trạm 1: Bến thuyền (Điểm xuất phát)",
+                an: { s: "Bắt đầu hành trình với vị trí đi sau cùng ('lẽo đẽo theo sau').", p: "Mang sự bỡ ngỡ, tò mò nhưng vẫn còn chút tĩnh lặng của một cậu bé thành thị lần đầu bước vào không gian rừng U Minh vắng vẻ, trong trẻo lúc sáng sớm." },
+                co: { s: "Đội chiếc thúng to tướng, đi ở giữa đoàn.", p: "Vô tư, bình thản. Khung cảnh và công việc này là một phần quen thuộc trong nhịp sống hằng ngày của cậu." },
+                tia: { s: "Dẫn đầu đoàn, lưng cõng gùi, tay cầm chà gạc, vung tay đưa rựa phạt ngang nhánh dại.", p: "Vững chãi, dứt khoát và tập trung. Ông toát lên phong thái của người thợ rừng dày dặn kinh nghiệm." }
+            },
+            2: {
+                t: "Trạm 2: Vùng ven rừng (Lội rừng gian nan)",
+                an: { s: "Thể lực giảm sút, chân 'líu quíu', mồ hôi túa xua, thở hổn hển.", p: "Cảm thấy mệt nhọc do chưa quen địa hình gập ghềnh. Tuy nhiên, cậu giữ tâm lý kiên cường, cố gắng bám theo mà không hề than vãn." },
+                co: { s: "Vẫn dẻo dai, cặp chân 'như cái sào' lội rừng thoăn thoắt.", p: "Cảm thấy khỏe khoắn, có phần đắc ý và trêu chọc sự mệt mỏi của An. Cậu tự hào ngầm về sức vóc của mình." },
+                tia: { s: "Chú ý quan sát nhịp độ di chuyển của hai đứa trẻ.", p: "Tinh tế và thấu hiểu. Nhận ra An mệt dù cậu không kêu ca, thể hiện sự quan tâm thầm lặng của người cha." }
+            },
+            3: {
+                t: "Trạm 3: Nơi ăn cơm sáng (Trên cây tràm đổ)",
+                an: { s: "Dừng chân, ngồi nghỉ ngơi và ăn cơm.", p: "Nhẹ nhõm, được nạp lại năng lượng. Sự mệt mỏi tan biến dần, thay vào đó là cảm giác an tâm khi được tía nuôi che chở." },
+                co: { s: "Ngồi vắt vẻo, ăn uống ngon lành.", p: "Thư giãn, thoải mái và tự nhiên như đang dùng bữa ở chính ngôi nhà của mình." },
+                tia: { s: "Ngồi vắt vẻo trên thân cây, vung rựa găm vào thân gỗ, lo bữa sáng.", p: "Điềm tĩnh, nhân hậu. Hành động chủ động cho nghỉ ngơi cho thấy ông rất chu đáo và yêu thương con cái." }
+            },
+            4: {
+                t: "Trạm 4: Khu vực gác kèo ong (Đường bay của ong)",
+                an: { s: "Tập trung cao độ nhìn theo hướng tay Cò và tía nuôi chỉ.", p: "Trải qua nhiều cung bậc: từ bối rối, hoang mang đến bất ngờ, vỡ lẽ và thích thú tột độ khi nhìn ra màng lưới ong bay." },
+                co: { s: "Đứng nhón chân, đưa tay trỏ lên trời chỉ hướng cho An.", p: "Thích thú, ra vẻ 'đàn anh', khoái chí đố bạn. Tâm lý tự hào của người nắm giữ bí mật rừng già." },
+                tia: { s: "Đứng cạnh, mỉm cười hiền từ, hỗ trợ An.", p: "Bao dung, vui vẻ. Ông đóng vai trò người thầy dẫn dắt, gợi mở để An tự khám phá sự kì diệu của thiên nhiên." }
+            },
+            5: {
+                t: "Trạm 5: Vùng rừng sâu (Tráng lệ hoang dã)",
+                an: { s: "Đắm mình vào không gian, huy động mọi giác quan quan sát.", p: "Choáng ngợp, say mê và rung động sâu sắc trước vẻ đẹp tráng lệ, tràn trề nhựa sống của thiên nhiên (ánh nắng, hương tràm, tiếng chim)." },
+                co: { s: "Cùng sải bước giữa rừng già ngập nắng.", p: "Tận hưởng và hòa quyện trọn vẹn. Cậu giống như một phần máu thịt của bức tranh thiên nhiên tuyệt đẹp ấy." },
+                tia: { s: "Tạm để các con tự do ngắm nhìn khung cảnh.", p: "Tĩnh tại, tự tại. Tâm hồn ông đồng điệu với thiên nhiên, mang vẻ đẹp phóng khoáng vùng đất phương Nam." }
+            },
+            6: {
+                t: "Trạm 6: Điểm kết thúc (Tổ ong lấy mật)",
+                an: { s: "Say sưa ngắm nhìn tổ ong vĩ đại, nhớ lại kiến thức má dạy.", p: "Chuyển sang trạng thái suy ngẫm, thán phục. An ngưỡng mộ trí tuệ và kinh nghiệm thấu hiểu quy luật tự nhiên của người dân." },
+                co: { s: "Túc trực, sẵn sàng phụ giúp tía.", p: "Bình thản, thạo việc và háo hức chờ đợi thành quả thu hoạch mật ong." },
+                tia: { s: "Bắt đầu thao tác chuyên môn (đun tút huýt, xua ong).", p: "Hiện thân vẻ đẹp người lao động chân chính: cẩn trọng, lành nghề và luôn tôn trọng, không tận diệt tự nhiên." }
+            }
+        };
+
+        const map = document.getElementById('mapContent');
+        const view = document.getElementById('viewport');
+        let scale = 0.4, panX = 100, panY = 50, isDragging = false, sX, sY;
+        
+        // CÁC BIẾN GHI NHỚ VỊ TRÍ
+        let lastScale = scale, lastPanX = panX, lastPanY = panY;
+
+        function update() { map.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`; }
+
+        function focusStation(id, x, y) {
+            // LƯU LẠI VỊ TRÍ HIỆN TẠI TRƯỚC KHI ZOOM
+            lastScale = scale;
+            lastPanX = panX;
+            lastPanY = panY;
+
+            // Phóng to vào trạm
+            scale = 0.9;
+            panX = (window.innerWidth / 2) - (x * scale);
+            panY = (window.innerHeight / 2) - (y * scale);
+            update();
+
+            setTimeout(() => {
+                const s = tripData[id];
+                document.getElementById('mTitle').innerText = s.t;
+                document.getElementById('mContent').innerHTML = `
+                    <div class="char-box char-an">
+                        <div class="char-name"><i class="fas fa-child"></i> NHÂN VẬT AN</div>
+                        <div class="char-status"><b>Trạng thái:</b> ${s.an.s}</div>
+                        <div class="char-psy"><b>Tâm lý:</b> ${s.an.p}</div>
+                    </div>
+                    <div class="char-box char-co">
+                        <div class="char-name"><i class="fas fa-running"></i> NHÂN VẬT CÒ</div>
+                        <div class="char-status"><b>Trạng thái:</b> ${s.co.s}</div>
+                        <div class="char-psy"><b>Tâm lý:</b> ${s.co.p}</div>
+                    </div>
+                    <div class="char-box char-tia">
+                        <div class="char-name"><i class="fas fa-user-tie"></i> TÍA NUÔI</div>
+                        <div class="char-status"><b>Trạng thái:</b> ${s.tia.s}</div>
+                        <div class="char-psy"><b>Tâm lý:</b> ${s.tia.p}</div>
+                    </div>
+                `;
+                document.getElementById('modal').style.display = 'flex';
+            }, 700);
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            // TRẢ VỀ ĐÚNG VỊ TRÍ ĐÃ LƯU TRƯỚC ĐÓ
+            scale = lastScale;
+            panX = lastPanX;
+            panY = lastPanY;
+            update();
+        }
+
+        view.addEventListener('wheel', e => {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 1.1 : 0.9;
+            const newScale = Math.min(Math.max(0.15, scale * delta), 2);
+            const rect = view.getBoundingClientRect();
+            const mX = e.clientX - rect.left, mY = e.clientY - rect.top;
+            panX = mX - (mX - panX) * (newScale / scale);
+            panY = mY - (mY - panY) * (newScale / scale);
+            scale = newScale; update();
+        }, { passive: false });
+
+        view.onmousedown = e => { 
+            if(e.target.closest('.station')) return; 
+            isDragging = true; 
+            sX = e.clientX - panX; 
+            sY = e.clientY - panY; 
+            map.style.transition = "none"; 
+        };
+
+        window.onmousemove = e => { 
+            if(!isDragging) return; 
+            panX = e.clientX - sX; 
+            panY = e.clientY - sY; 
+            update(); 
+        };
+
+        window.onmouseup = () => { 
+            isDragging = false; 
+            map.style.transition = "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)"; 
+        };
+
+        function initForest() {
+            const container = document.getElementById('forestContainer');
+            for(let i=0; i<450; i++) {
+                const tree = document.createElement('div');
+                tree.className = 'tree';
+                tree.style.left = Math.random() * 6000 + 'px';
+                tree.style.top = Math.random() * 4000 + 'px';
+                for(let j=0; j<3; j++) {
+                    const leaf = document.createElement('div');
+                    leaf.className = 'leaf-cluster';
+                    const size = 65 + Math.random() * 75;
+                    leaf.style.width = size + 'px'; leaf.style.height = size + 'px';
+                    leaf.style.left = (Math.random() * 20 - 10) + 'px';
+                    leaf.style.top = (Math.random() * 20 - 10) + 'px';
+                    tree.appendChild(leaf);
+                }
+                container.appendChild(tree);
+            }
+        }
+        initForest(); update();
+    </script>
+</body>
+</html>
