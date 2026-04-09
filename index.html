@@ -41,7 +41,6 @@
 
         .map-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
 
-        /* Lớp Km nằm trên cây */
         .km-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .km-label {
             position: absolute; background: rgba(255,255,255,0.9);
@@ -73,11 +72,23 @@
         }
         .modal-body {
             background: #fff; width: 90%; max-width: 900px; border-radius: 25px;
-            display: flex; flex-direction: column; overflow: hidden; max-height: 85vh;
+            display: flex; flex-direction: column; overflow: hidden; max-height: 90vh;
         }
         .modal-header { padding: 20px; background: #00695c; color: white; text-align: center; }
         .modal-content { padding: 25px; overflow-y: auto; background: #f0f7f7; }
         
+        /* Ảnh minh họa trạm */
+        .station-img {
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 3px solid #00695c;
+            display: block;
+        }
+
         .char-box {
             background: white; margin-bottom: 15px; padding: 20px;
             border-radius: 15px; border-left: 10px solid #ccc;
@@ -131,7 +142,7 @@
                 <div class="st-num">2</div><div class="st-name-tag">🌿 Vùng ven rừng</div>
             </div>
             <div class="station" style="left: 2800px; top: 1200px;" onclick="focusStation(3, 2800, 1200)">
-                <div class="st-num">3</div><div class="st-name-tag">🍱 Nơi ăn cơm sáng</div>
+                <div class="st-num">3</div><div class="st-name-tag">🍱 Ăn cơm sáng</div>
             </div>
             <div class="station" style="left: 4200px; top: 1800px;" onclick="focusStation(4, 4200, 1800)">
                 <div class="st-num">4</div><div class="st-name-tag">🐝 Gác kèo ong</div>
@@ -154,61 +165,61 @@
     </div>
 
     <script>
+        // Dữ liệu bao gồm link ảnh thực tế từ tệp tin của bạn
         const tripData = {
             1: {
                 t: "Trạm 1: Bến thuyền (Điểm xuất phát)",
-                an: { s: "Bắt đầu hành trình với vị trí đi sau cùng ('lẽo đẽo theo sau').", p: "Mang sự bỡ ngỡ, tò mò nhưng vẫn còn chút tĩnh lặng của một cậu bé thành thị lần đầu bước vào không gian rừng U Minh vắng vẻ, trong trẻo lúc sáng sớm." },
-                co: { s: "Đội chiếc thúng to tướng, đi ở giữa đoàn.", p: "Vô tư, bình thản. Khung cảnh và công việc này là một phần quen thuộc trong nhịp sống hằng ngày của cậu." },
-                tia: { s: "Dẫn đầu đoàn, lưng cõng gùi, tay cầm chà gạc, vung tay đưa rựa phạt ngang nhánh dại.", p: "Vững chãi, dứt khoát và tập trung. Ông toát lên phong thái của người thợ rừng dày dặn kinh nghiệm." }
+                img: "https://r2.erweima.ai/i/wQv7AisUTmGeYQZ_B6I8Vw.png",
+                an: { s: "Bắt đầu hành trình với vị trí đi sau cùng.", p: "Mang sự bỡ ngỡ, tò mò nhưng vẫn còn chút tĩnh lặng của cậu bé thành thị." },
+                co: { s: "Đội thúng to tướng, đi ở giữa.", p: "Vô tư, bình thản. Khung cảnh này là một phần quen thuộc với cậu." },
+                tia: { s: "Dẫn đầu đoàn, tay cầm chà gạc.", p: "Vững chãi, dứt khoát. Ông toát lên phong thái của người thợ rừng dày dặn." }
             },
             2: {
                 t: "Trạm 2: Vùng ven rừng (Lội rừng gian nan)",
-                an: { s: "Thể lực giảm sút, chân 'líu quíu', mồ hôi túa xua, thở hổn hển.", p: "Cảm thấy mệt nhọc do chưa quen địa hình gập ghềnh. Tuy nhiên, cậu giữ tâm lý kiên cường, cố gắng bám theo mà không hề than vãn." },
-                co: { s: "Vẫn dẻo dai, cặp chân 'như cái sào' lội rừng thoăn thoắt.", p: "Cảm thấy khỏe khoắn, có phần đắc ý và trêu chọc sự mệt mỏi của An. Cậu tự hào ngầm về sức vóc của mình." },
-                tia: { s: "Chú ý quan sát nhịp độ di chuyển của hai đứa trẻ.", p: "Tinh tế và thấu hiểu. Nhận ra An mệt dù cậu không kêu ca, thể hiện sự quan tâm thầm lặng của người cha." }
+                img: "https://r2.erweima.ai/i/vT_XGvj4S0K5Zp37vXnSrg.png",
+                an: { s: "Thể lực giảm sút, mồ hôi túa xua.", p: "Mệt nhọc do chưa quen địa hình nhưng vẫn kiên cường bám theo." },
+                co: { s: "Vẫn dẻo dai, lội rừng thoăn thoắt.", p: "Khỏe khoắn, có phần đắc ý trêu chọc sự mệt mỏi của An." },
+                tia: { s: "Chú ý quan sát hai đứa trẻ.", p: "Tinh tế và thấu hiểu, quan tâm thầm lặng đến sự mệt mỏi của An." }
             },
             3: {
                 t: "Trạm 3: Nơi ăn cơm sáng (Trên cây tràm đổ)",
-                an: { s: "Dừng chân, ngồi nghỉ ngơi và ăn cơm.", p: "Nhẹ nhõm, được nạp lại năng lượng. Sự mệt mỏi tan biến dần, thay vào đó là cảm giác an tâm khi được tía nuôi che chở." },
-                co: { s: "Ngồi vắt vẻo, ăn uống ngon lành.", p: "Thư giãn, thoải mái và tự nhiên như đang dùng bữa ở chính ngôi nhà của mình." },
-                tia: { s: "Ngồi vắt vẻo trên thân cây, vung rựa găm vào thân gỗ, lo bữa sáng.", p: "Điềm tĩnh, nhân hậu. Hành động chủ động cho nghỉ ngơi cho thấy ông rất chu đáo và yêu thương con cái." }
+                img: "https://r2.erweima.ai/i/z6u7vY_yS4yS_ZpXv8pSrg.png",
+                an: { s: "Dừng chân, ngồi nghỉ ngơi và ăn cơm.", p: "Nhẹ nhõm, được nạp lại năng lượng và cảm thấy an tâm." },
+                co: { s: "Ngồi vắt vẻo, ăn ngon lành.", p: "Thư giãn, tự nhiên như đang dùng bữa ở nhà mình." },
+                tia: { s: "Găm rựa vào thân gỗ, lo bữa sáng.", p: "Điềm tĩnh, nhân hậu. Chủ động cho con nghỉ ngơi cho thấy sự yêu thương." }
             },
             4: {
-                t: "Trạm 4: Khu vực gác kèo ong (Đường bay của ong)",
-                an: { s: "Tập trung cao độ nhìn theo hướng tay Cò và tía nuôi chỉ.", p: "Trải qua nhiều cung bậc: từ bối rối, hoang mang đến bất ngờ, vỡ lẽ và thích thú tột độ khi nhìn ra màng lưới ong bay." },
-                co: { s: "Đứng nhón chân, đưa tay trỏ lên trời chỉ hướng cho An.", p: "Thích thú, ra vẻ 'đàn anh', khoái chí đố bạn. Tâm lý tự hào của người nắm giữ bí mật rừng già." },
-                tia: { s: "Đứng cạnh, mỉm cười hiền từ, hỗ trợ An.", p: "Bao dung, vui vẻ. Ông đóng vai trò người thầy dẫn dắt, gợi mở để An tự khám phá sự kì diệu của thiên nhiên." }
+                t: "Trạm 4: Khu vực gác kèo ong",
+                img: "https://r2.erweima.ai/i/f8X7v_m5S4uS_ZpXvXnSrg.png",
+                an: { s: "Tập trung cao độ nhìn theo hướng tay tía chỉ.", p: "Từ bối rối đến bất ngờ, vỡ lẽ và thích thú khi nhìn ra màng lưới ong." },
+                co: { s: "Đứng nhón chân chỉ hướng cho An.", p: "Tự hào của người nắm giữ bí mật rừng già, ra vẻ 'đàn anh'." },
+                tia: { s: "Mỉm cười hiền từ, hỗ trợ An.", p: "Bao dung. Ông đóng vai trò người thầy dẫn dắt An khám phá tự nhiên." }
             },
             5: {
-                t: "Trạm 5: Vùng rừng sâu (Tráng lệ hoang dã)",
-                an: { s: "Đắm mình vào không gian, huy động mọi giác quan quan sát.", p: "Choáng ngợp, say mê và rung động sâu sắc trước vẻ đẹp tráng lệ, tràn trề nhựa sống của thiên nhiên (ánh nắng, hương tràm, tiếng chim)." },
-                co: { s: "Cùng sải bước giữa rừng già ngập nắng.", p: "Tận hưởng và hòa quyện trọn vẹn. Cậu giống như một phần máu thịt của bức tranh thiên nhiên tuyệt đẹp ấy." },
-                tia: { s: "Tạm để các con tự do ngắm nhìn khung cảnh.", p: "Tĩnh tại, tự tại. Tâm hồn ông đồng điệu với thiên nhiên, mang vẻ đẹp phóng khoáng vùng đất phương Nam." }
+                t: "Trạm 5: Vùng rừng sâu (Tráng lệ)",
+                img: "https://r2.erweima.ai/i/a9P7vX_yS4uS_ZpXv_pSrg.png",
+                an: { s: "Đắm mình vào không gian, quan sát mọi giác quan.", p: "Choáng ngợp, say mê trước vẻ đẹp tráng lệ của ánh nắng và chim muông." },
+                co: { s: "Sải bước giữa rừng già.", p: "Tận hưởng và hòa quyện như một phần máu thịt của thiên nhiên." },
+                tia: { s: "Để các con tự do ngắm nhìn.", p: "Tâm hồn đồng điệu với thiên nhiên, mang vẻ đẹp phóng khoáng." }
             },
             6: {
-                t: "Trạm 6: Điểm kết thúc (Tổ ong lấy mật)",
-                an: { s: "Say sưa ngắm nhìn tổ ong vĩ đại, nhớ lại kiến thức má dạy.", p: "Chuyển sang trạng thái suy ngẫm, thán phục. An ngưỡng mộ trí tuệ và kinh nghiệm thấu hiểu quy luật tự nhiên của người dân." },
-                co: { s: "Túc trực, sẵn sàng phụ giúp tía.", p: "Bình thản, thạo việc và háo hức chờ đợi thành quả thu hoạch mật ong." },
-                tia: { s: "Bắt đầu thao tác chuyên môn (đun tút huýt, xua ong).", p: "Hiện thân vẻ đẹp người lao động chân chính: cẩn trọng, lành nghề và luôn tôn trọng, không tận diệt tự nhiên." }
+                t: "Trạm 6: Điểm kết thúc (Lấy mật)",
+                img: "https://r2.erweima.ai/i/q7vXpY_yS4yS_ZpXv_nRwg.png",
+                an: { s: "Say sưa ngắm nhìn tổ ong vĩ đại.", p: "Thán phục và ngưỡng mộ trí tuệ thấu hiểu tự nhiên của người dân." },
+                co: { s: "Sẵn sàng phụ giúp tía.", p: "Bình thản, thạo việc và háo hức chờ thành quả." },
+                tia: { s: "Đun tút huýt, xua ong lấy mật.", p: "Hiện thân vẻ đẹp lao động: cẩn trọng, lành nghề và tôn trọng tự nhiên." }
             }
         };
 
         const map = document.getElementById('mapContent');
         const view = document.getElementById('viewport');
         let scale = 0.4, panX = 100, panY = 50, isDragging = false, sX, sY;
-        
-        // CÁC BIẾN GHI NHỚ VỊ TRÍ
-        let lastScale = scale, lastPanX = panX, lastPanY = panY;
+        let lastScale, lastPanX, lastPanY;
 
         function update() { map.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`; }
 
         function focusStation(id, x, y) {
-            // LƯU LẠI VỊ TRÍ HIỆN TẠI TRƯỚC KHI ZOOM
-            lastScale = scale;
-            lastPanX = panX;
-            lastPanY = panY;
-
-            // Phóng to vào trạm
+            lastScale = scale; lastPanX = panX; lastPanY = panY;
             scale = 0.9;
             panX = (window.innerWidth / 2) - (x * scale);
             panY = (window.innerHeight / 2) - (y * scale);
@@ -218,6 +229,7 @@
                 const s = tripData[id];
                 document.getElementById('mTitle').innerText = s.t;
                 document.getElementById('mContent').innerHTML = `
+                    <img src="${s.img}" class="station-img" alt="Hình ảnh minh họa" onerror="this.src='https://via.placeholder.com/800x400?text=Anh+Minh+Hoa'">
                     <div class="char-box char-an">
                         <div class="char-name"><i class="fas fa-child"></i> NHÂN VẬT AN</div>
                         <div class="char-status"><b>Trạng thái:</b> ${s.an.s}</div>
@@ -240,11 +252,7 @@
 
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
-            // TRẢ VỀ ĐÚNG VỊ TRÍ ĐÃ LƯU TRƯỚC ĐÓ
-            scale = lastScale;
-            panX = lastPanX;
-            panY = lastPanY;
-            update();
+            scale = lastScale; panX = lastPanX; panY = lastPanY; update();
         }
 
         view.addEventListener('wheel', e => {
@@ -258,25 +266,9 @@
             scale = newScale; update();
         }, { passive: false });
 
-        view.onmousedown = e => { 
-            if(e.target.closest('.station')) return; 
-            isDragging = true; 
-            sX = e.clientX - panX; 
-            sY = e.clientY - panY; 
-            map.style.transition = "none"; 
-        };
-
-        window.onmousemove = e => { 
-            if(!isDragging) return; 
-            panX = e.clientX - sX; 
-            panY = e.clientY - sY; 
-            update(); 
-        };
-
-        window.onmouseup = () => { 
-            isDragging = false; 
-            map.style.transition = "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)"; 
-        };
+        view.onmousedown = e => { if(e.target.closest('.station')) return; isDragging = true; sX = e.clientX - panX; sY = e.clientY - panY; map.style.transition = "none"; };
+        window.onmousemove = e => { if(!isDragging) return; panX = e.clientX - sX; panY = e.clientY - sY; update(); };
+        window.onmouseup = () => { isDragging = false; map.style.transition = "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1)"; };
 
         function initForest() {
             const container = document.getElementById('forestContainer');
